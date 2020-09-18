@@ -2,6 +2,8 @@
 
 Flutter `beacons_plugin` 套件測試。
 
+`archived/main.dart` 為官方範例，基本上沒有修改。
+
 
 ## 參考資料
 
