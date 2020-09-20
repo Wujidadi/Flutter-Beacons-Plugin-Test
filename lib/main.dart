@@ -1,10 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'dart:async';
 import 'dart:io' show Platform;
 import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:beacons_plugin/beacons_plugin.dart';
+import 'package:ansicolor/ansicolor.dart';
 import 'package:beacons_plugin_test/data/beacon.dart';
+import 'package:beacons_plugin_test/widgets/gestureable_app_bar.dart';
 
 void main() {
     /* 視覺輔助排版工具 */
@@ -19,7 +21,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-    var isRunning = false;
+    var isRunning = true;
 
     final String myUuid = '0a4d8b73-7f74-4a83-b2ca-4fe84e870427';
 
@@ -27,31 +29,39 @@ class _MyAppState extends State<MyApp> {
 
     final StreamController<String> beaconEventsController = StreamController<String>.broadcast();
 
-    /* Beacon 資料列表 */
-    List<Beacon> beacons = List<Beacon>.empty(growable: true);
-
-    /* Beacon MAC Address 列表，用於篩選 */
-    List<String> beaconMacAddr = List<String>.empty(growable: true);
-
-    /* 初始化 */
+    /// 初始化
     @override
     void initState() {
         super.initState();
         initPlatformState();
     }
 
-    /* 銷毀 */
+    /// 銷毀
     @override
     void dispose() {
         beaconEventsController.close();
         super.dispose();
     }
 
-    /* Platform 訊息皆為非同步，故以非同步方法初始化 */
+    /// Beacon 資料列表
+    List<Beacon> beacons = List<Beacon>.empty(growable: true);
+
+    /// Beacon MAC Address 列表，用於篩選
+    List<String> beaconMacAddr = List<String>.empty(growable: true);
+
+    /// Platform 訊息皆為非同步，故以非同步方法初始化
     Future<void> initPlatformState() async {
+
+        /* 設定 dubug 訊息等級 */
+        BeaconsPlugin.setDebugLevel(1);
+
+        /* 開啟 App 時便開始掃描 */
+        await BeaconsPlugin.startMonitoring;
+
+        /* 掃描 beacon */
         BeaconsPlugin.listenToBeacons(beaconEventsController);
 
-        // await BeaconsPlugin.addRegion('BeaconType1', '909c3cf9-fc5c-4841-b695-380958a51a5a');
+        await BeaconsPlugin.addRegion('BeaconType1', myUuid);
         // await BeaconsPlugin.addRegion('BeaconType2', '6a84c716-0f2a-1ce9-f210-6a63bd873dd9');
 
         beaconEventsController.stream.listen((data) {
@@ -136,281 +146,252 @@ class _MyAppState extends State<MyApp> {
         if (!mounted) return;
     }
 
+    /// Stream 化的 isRunning 旗標
     Stream<bool> isScanning() {
         return Stream.value(isRunning);
     }
 
-    @override
-    Widget build(BuildContext context) {
-        return MaterialApp(
-            debugShowCheckedModeBanner: false,
-            home: Scaffold(
-                appBar: AppBar(
-                    title: Text('Beacon 列表 (${beacons.length})'),
-                    centerTitle: true
-                ),
-                body: Center(
-                    child: ListView.builder(
-                        itemCount: beacons.length,
-                        itemBuilder: (context, index) {
-                            return Row(
-                                children: <Widget>[
-                                    Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: <Widget>[
-                                            Container(
-                                                child: Icon(
-                                                    Icons.bluetooth,
-                                                    color: Colors.blue
-                                                ),
-                                                padding: EdgeInsets.all(10)
-                                            )
-                                        ]
+    /// ListView 化的 Beacon 資料
+    ListView beaconList(List<Beacon> beacon) {
+
+        /* 依 minor 排序 beacon */
+        beacon.sort((a, b) {
+            return a.minor.compareTo(b.minor) * 1;
+        });
+
+        /* 返回 ListView */
+        return ListView.builder(
+            itemCount: beacon.length,
+            itemBuilder: (context, index) {
+                return Row(
+                    children: <Widget>[
+                        /* 左邊的藍牙圖示 */
+                        Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                                Container(
+                                    child: Icon(
+                                        Icons.bluetooth,
+                                        color: Colors.blue
                                     ),
-                                    Column(
+                                    padding: EdgeInsets.all(12)
+                                )
+                            ]
+                        ),
+
+                        /* Beacon 資訊 */
+                        Column(
+                            children: <Widget>[
+                                Container(
+                                    padding: EdgeInsets.only(
+                                        top: 10,
+                                        bottom: 10
+                                    ),
+                                    child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: <Widget>[
-                                            Container(
-                                                padding: EdgeInsets.only(
-                                                    top: 10,
-                                                    bottom: 10
-                                                ),
-                                                child: Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: <Widget>[
-                                                        RichText(
-                                                            text: TextSpan(
-                                                                style: TextStyle(
-                                                                    fontSize: 12,
-                                                                    color: Colors.grey
-                                                                ),
-                                                                children: <TextSpan>[
-                                                                    TextSpan(
-                                                                        text: '${beacons[index].mac}',
-                                                                        style: TextStyle(
-                                                                            fontSize: 14,
-                                                                            fontWeight: FontWeight.bold,
-                                                                            color: Colors.black
-                                                                        )
-                                                                    ),
-                                                                    TextSpan(text: '\n'),
-
-                                                                    /* 區隔 MAC Address 與其他資訊的空行 */
-                                                                    TextSpan(
-                                                                        text: ' \n',
-                                                                        style: TextStyle(
-                                                                            height: 0.5
-                                                                        )
-                                                                    ),
-
-                                                                    TextSpan(text: 'UUID: '),
-                                                                    TextSpan(
-                                                                        text: '${beacons[index].uuid}'.toUpperCase(),
-                                                                        style: TextStyle(
-                                                                            fontWeight: FontWeight.bold
-                                                                        )
-                                                                    ),
-                                                                    TextSpan(text: '\n'),
-
-                                                                    TextSpan(
-                                                                        style: TextStyle(
-                                                                            color: Colors.amber[600]
-                                                                        ),
-                                                                        children: <TextSpan>[
-                                                                            TextSpan(text: 'Major: '),
-                                                                            TextSpan(
-                                                                                text: '${beacons[index].major}',
-                                                                                style: TextStyle(
-                                                                                    fontWeight: FontWeight.bold
-                                                                                )
-                                                                            )
-                                                                        ]
-                                                                    ),
-                                                                    TextSpan(text: ',  '),
-
-                                                                    TextSpan(
-                                                                        style: TextStyle(
-                                                                            color: Colors.green[600]
-                                                                        ),
-                                                                        children: <TextSpan>[
-                                                                            TextSpan(text: 'Minor: '),
-                                                                            TextSpan(
-                                                                                text: '${beacons[index].minor}',
-                                                                                style: TextStyle(
-                                                                                    fontWeight: FontWeight.bold
-                                                                                )
-                                                                            )
-                                                                        ]
-                                                                    ),
-                                                                    TextSpan(text: ',  '),
-
-                                                                    TextSpan(
-                                                                        style: TextStyle(
-                                                                            color: Colors.red[600]
-                                                                        ),
-                                                                        children: <TextSpan>[
-                                                                            TextSpan(text: 'RSSI: '),
-                                                                            TextSpan(
-                                                                                text: '${beacons[index].rssi}',
-                                                                                style: TextStyle(
-                                                                                    fontWeight: FontWeight.bold
-                                                                                )
-                                                                            )
-                                                                        ]
-                                                                    ),
-                                                                    TextSpan(text: ',  '),
-
-                                                                    TextSpan(
-                                                                        style: TextStyle(
-                                                                            color: Colors.blue[700]
-                                                                        ),
-                                                                        children: <TextSpan>[
-                                                                            TextSpan(text: '距離: '),
-                                                                            TextSpan(
-                                                                                text: '${beacons[index].distance}m',
-                                                                                style: TextStyle(
-                                                                                    fontWeight: FontWeight.bold
-                                                                                )
-                                                                            )
-                                                                        ]
-                                                                    )
-                                                                ]
+                                            RichText(
+                                                text: TextSpan(
+                                                    /* 預設樣式 */
+                                                    style: TextStyle(
+                                                        fontSize: 12,
+                                                        color: Colors.grey
+                                                    ),
+                                                    children: <TextSpan>[
+                                                        /* Beacon MAC address */
+                                                        TextSpan(
+                                                            text: '${beacon[index].mac}',
+                                                            style: TextStyle(
+                                                                fontSize: 14,
+                                                                fontWeight: FontWeight.bold,
+                                                                color: Colors.black
                                                             )
+                                                        ),
+                                                        TextSpan(text: '\n'),   // 換行
+
+                                                        /* 區隔 MAC Address 與其他資訊的空行 */
+                                                        TextSpan(
+                                                            text: ' \n',
+                                                            style: TextStyle(
+                                                                height: 0.5
+                                                            )
+                                                        ),
+
+                                                        /* Beacon UUID，單列一行 */
+                                                        TextSpan(text: 'UUID: '),
+                                                        TextSpan(
+                                                            text: '${beacon[index].uuid}'.toUpperCase(),
+                                                            style: TextStyle(
+                                                                fontWeight: FontWeight.bold
+                                                            )
+                                                        ),
+                                                        TextSpan(text: '\n'),   // 換行
+
+                                                        /* Beacon Major */
+                                                        TextSpan(
+                                                            style: TextStyle(
+                                                                color: Colors.amber[600]
+                                                            ),
+                                                            children: <TextSpan>[
+                                                                TextSpan(text: 'Major: '),
+                                                                TextSpan(
+                                                                    text: '${beacon[index].major}',
+                                                                    style: TextStyle(
+                                                                        fontWeight: FontWeight.bold
+                                                                    )
+                                                                )
+                                                            ]
+                                                        ),
+                                                        TextSpan(text: ',  '),  // 空格
+
+                                                        /* Beacon Minor */
+                                                        TextSpan(
+                                                            style: TextStyle(
+                                                                color: Colors.green[600]
+                                                            ),
+                                                            children: <TextSpan>[
+                                                                TextSpan(text: 'Minor: '),
+                                                                TextSpan(
+                                                                    text: '${beacon[index].minor}',
+                                                                    style: TextStyle(
+                                                                        fontWeight: FontWeight.bold
+                                                                    )
+                                                                )
+                                                            ]
+                                                        ),
+                                                        TextSpan(text: ',  '),  // 空格
+
+                                                        /* Beacon RSSI */
+                                                        TextSpan(
+                                                            style: TextStyle(
+                                                                color: Colors.red[600]
+                                                            ),
+                                                            children: <TextSpan>[
+                                                                TextSpan(text: 'RSSI: '),
+                                                                TextSpan(
+                                                                    text: '${beacon[index].rssi}',
+                                                                    style: TextStyle(
+                                                                        fontWeight: FontWeight.bold
+                                                                    )
+                                                                )
+                                                            ]
+                                                        ),
+                                                        TextSpan(text: ',  '),  // 空格
+
+                                                        /* Beacon 距離 */
+                                                        TextSpan(
+                                                            style: TextStyle(
+                                                                color: Colors.blue[700]
+                                                            ),
+                                                            children: <TextSpan>[
+                                                                TextSpan(text: '距離: '),
+                                                                TextSpan(
+                                                                    text: '${beacon[index].distance}m',
+                                                                    style: TextStyle(
+                                                                        fontWeight: FontWeight.bold
+                                                                    )
+                                                                )
+                                                            ]
+                                                        ),
+                                                        TextSpan(text: '\n'),   // 換行,
+
+                                                        /* Beacon 資訊更新時間，單列一行 */
+                                                        TextSpan(
+                                                            style: TextStyle(
+                                                                color: Colors.cyan
+                                                            ),
+                                                            children: <TextSpan>[
+                                                                TextSpan(text: '時間: '),
+                                                                TextSpan(
+                                                                    text: '${beacon[index].time}',
+                                                                    style: TextStyle(
+                                                                        fontWeight: FontWeight.bold
+                                                                    )
+                                                                )
+                                                            ]
                                                         )
                                                     ]
                                                 )
                                             )
                                         ]
                                     )
-                                ]
-                            );
-                            // return ListTile(
-                            //     isThreeLine: true,
-                            //     leading: Icon(
-                            //         Icons.bluetooth,
-                            //         color: Colors.blue
-                            //     ),
-                            //     title: Align(
-                            //         alignment: Alignment(-1.3, 0),
-                            //         child: Text(beacons[index].mac)
-                            //     ),
-                            //     subtitle: Align(
-                            //         alignment: Alignment(-50, 0),
-                            //         // child: Text(beacons[index].uuid)
-                            //         child: RichText(
-                            //             text: TextSpan(
-                            //                 style: TextStyle(
-                            //                     fontSize: 12,
-                            //                     color: Colors.grey
-                            //                 ),
-                            //                 children: <TextSpan>[
-                            //                     TextSpan(text: 'UUID: '),
-                            //                     TextSpan(
-                            //                         text: '${beacons[index].uuid}'.toUpperCase(),
-                            //                         style: TextStyle(
-                            //                             fontWeight: FontWeight.bold
-                            //                         )
-                            //                     ),
-                            //                     TextSpan(text: '\n'),
+                                )
+                            ]
+                        )
+                    ]
+                );
+            }
+        );
+    }
 
-                            //                     TextSpan(
-                            //                         style: TextStyle(
-                            //                             color: Colors.amber[600]
-                            //                         ),
-                            //                         children: <TextSpan>[
-                            //                             TextSpan(text: 'Major: '),
-                            //                             TextSpan(
-                            //                                 text: '${beacons[index].major}',
-                            //                                 style: TextStyle(
-                            //                                     fontWeight: FontWeight.bold
-                            //                                 )
-                            //                             )
-                            //                         ]
-                            //                     ),
-                            //                     TextSpan(text: ',  '),
-
-                            //                     TextSpan(
-                            //                         style: TextStyle(
-                            //                             color: Colors.green[600]
-                            //                         ),
-                            //                         children: <TextSpan>[
-                            //                             TextSpan(text: 'Minor: '),
-                            //                             TextSpan(
-                            //                                 text: '${beacons[index].minor}',
-                            //                                 style: TextStyle(
-                            //                                     fontWeight: FontWeight.bold
-                            //                                 )
-                            //                             )
-                            //                         ]
-                            //                     ),
-                            //                     TextSpan(text: ',  '),
-
-                            //                     TextSpan(
-                            //                         style: TextStyle(
-                            //                             color: Colors.red[600]
-                            //                         ),
-                            //                         children: <TextSpan>[
-                            //                             TextSpan(text: 'RSSI: '),
-                            //                             TextSpan(
-                            //                                 text: '${beacons[index].rssi}',
-                            //                                 style: TextStyle(
-                            //                                     fontWeight: FontWeight.bold
-                            //                                 )
-                            //                             )
-                            //                         ]
-                            //                     ),
-                            //                     TextSpan(text: ',  '),
-
-                            //                     TextSpan(
-                            //                         style: TextStyle(
-                            //                             color: Colors.blue[700]
-                            //                         ),
-                            //                         children: <TextSpan>[
-                            //                             TextSpan(text: '距離: '),
-                            //                             TextSpan(
-                            //                                 text: '${beacons[index].distance}m',
-                            //                                 style: TextStyle(
-                            //                                     fontWeight: FontWeight.bold
-                            //                                 )
-                            //                             )
-                            //                         ]
-                            //                     )
-                            //                 ]
-                            //             )
-                            //         )
-                            //     )
-                            // );
+    /// 依 isRunning 的值決定 Scan 按鈕樣式及狀態的 StreamBuilder
+    StreamBuilder<bool> scanningButton(Stream<bool> status) {
+        return StreamBuilder<bool>(
+            stream: status,
+            initialData: false,
+            builder: (c, snapshot) {
+                if (snapshot.data) {
+                    return FloatingActionButton(
+                        child: Icon(Icons.stop),
+                        backgroundColor: Colors.red,
+                        onPressed: () async {
+                            if (Platform.isAndroid) {
+                                await BeaconsPlugin.stopMonitoring;
+                                setState(() {
+                                    isRunning = false;
+                                });
+                            }
                         }
-                    )
-                ),
-                floatingActionButton: StreamBuilder<bool>(
-                    stream: isScanning(),
-                    initialData: false,
-                    builder: (c, snapshot) {
-                        if (snapshot.data) {
-                            return FloatingActionButton(
-                                child: Icon(Icons.stop),
-                                onPressed: () async {
-                                    if (Platform.isAndroid) {
-                                        await BeaconsPlugin.stopMonitoring;
-                                        setState(() {
-                                            isRunning = false;
-                                        });
-                                    }
-                                }
-                            );
-                        } else {
-                            return FloatingActionButton(
-                                child: Icon(Icons.search),
-                                onPressed: () async {
-                                    initPlatformState();
-                                    await BeaconsPlugin.startMonitoring;
-                                    setState(() {
-                                        isRunning = true;
-                                    });
-                                }
-                            );
+                    );
+                } else {
+                    return FloatingActionButton(
+                        child: Icon(Icons.search),
+                        backgroundColor: Colors.blue,
+                        onPressed: () async {
+                            initPlatformState();
+                            await BeaconsPlugin.startMonitoring;
+                            setState(() {
+                                isRunning = true;
+                            });
                         }
-                    }
+                    );
+                }
+            }
+        );
+    }
+
+    /// 基於 ansicolor 套件，在 console 中印出金色字體訊息
+    String goldMsg(String msg) {
+        AnsiPen pen = AnsiPen()..rgb(r: 1.0, g: 0.843, b: 0);
+        return pen(msg);
+    }
+
+    /// 基於 ansicolor 套件，在 console 中印出青綠色字體訊息
+    String greenMsg(String msg) {
+        AnsiPen pen = AnsiPen()..rgb(r: 0, g: 1, b: 0);
+        return pen(msg);
+    }
+
+    @override
+    Widget build(BuildContext context) {
+        return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            home: WillPopScope(
+                onWillPop: () async => false,
+                child: Scaffold(
+                    appBar: GestureableAppBar(
+                        appBar: AppBar(
+                            title: Text('Beacon 列表 (${beacons.length})'),
+                            centerTitle: true,
+                        ),
+                        onTap: () {
+                            print(greenMsg('isRunning = $isRunning'));
+                        }
+                    ),
+                    body: Center(
+                        child: beaconList(beacons)
+                    ),
+                    floatingActionButton: scanningButton(isScanning())
                 )
             )
         );
