@@ -2,7 +2,7 @@ package com.example.beacons_plugin_test
 
 import io.flutter.embedding.android.FlutterActivity
 import com.umair.beacons_plugin.BeaconsPlugin
-import com.taras.taras_plugin_local.coloredMessage
+import com.taras.taras_plugin.coloredMessage
 import timber.log.Timber
 
 class MainActivity: FlutterActivity() {
