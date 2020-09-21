@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 class GestureableAppBar extends StatelessWidget implements PreferredSizeWidget {
+
     final VoidCallback onTap;
     final AppBar appBar;
 

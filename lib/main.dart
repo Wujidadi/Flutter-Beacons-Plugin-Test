@@ -9,6 +9,7 @@ import 'package:beacons_plugin_test/data/beacon.dart';
 import 'package:beacons_plugin_test/widgets/gestureable_app_bar.dart';
 
 void main() {
+
     /* 視覺輔助排版工具 */
     debugPaintSizeEnabled = false;
 
@@ -21,6 +22,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+
     var isRunning = true;
 
     final String myUuid = '0a4d8b73-7f74-4a83-b2ca-4fe84e870427';
@@ -70,7 +72,7 @@ class _MyAppState extends State<MyApp> {
                 String json = data.replaceAll(RegExp(r'^Received: '), '');
                 Map<String, dynamic> map = jsonDecode(json);
                 setState(() {
-                    if (map['uuid'].toLowerCase() == myUuid) {
+                    // if (map['uuid'].toLowerCase() == myUuid) {
                         if (!beaconMacAddr.contains(map['macAddress'])) {
                             Beacon beaconData = Beacon(
                                 name: map['name'],
@@ -103,7 +105,7 @@ class _MyAppState extends State<MyApp> {
                             beaconMacAddr.add(map['macAddress']);
                             // print(beaconData.toJson());
                         }
-                    }
+                    // }
                 });
             }
         },
