@@ -304,11 +304,56 @@ class _MainPageState extends State<MainPage>
         );
     }
 
+    /// 點擊返回鍵時跳出警告訊息框
+    Future<bool> backExitAlert(BuildContext context)
+    {
+        /// 取消按鈕
+        Widget cancelButton = FlatButton(
+            child: Text('取消'),
+            onPressed: () {
+                Navigator.of(context).pop(false);
+            }
+        );
+
+        /// 確定按鈕
+        Widget submitButton = FlatButton(
+            child: Text('確定'),
+            onPressed: () {
+                Navigator.of(context).pop(true);
+            }
+        );
+
+        /// 警告訊息框
+        AlertDialog alert = AlertDialog(
+            title: Text('退出 Beacon Scanner'),
+            titleTextStyle: TextStyle(
+                color: Colors.blue,
+                fontSize: 19,
+                fontWeight: FontWeight.bold
+            ),
+            titlePadding: EdgeInsets.fromLTRB(17.5, 12.5, 17.5, 12.5),
+            content: Text('確定離開 Beacon Scanner？'),
+            contentPadding: EdgeInsets.fromLTRB(17.5, 12.5, 17.5, 12.5),
+            actions: <Widget>[
+                cancelButton,
+                submitButton
+            ]
+        );
+
+        return showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+                return alert;
+            }
+        );
+    }
+
     @override
     Widget build(BuildContext context)
     {
         return WillPopScope(
-            onWillPop: () async => false,
+            onWillPop: () async => backExitAlert(context),
             child: Scaffold
             (
                 /* 使用自建的 GestureableAppBar 以產生可響應事件的 AppBar */
