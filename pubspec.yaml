@@ -37,6 +37,8 @@ dependencies:
 
   get_mac: ^0.0.1
 
+  imei_plugin: ^1.2.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

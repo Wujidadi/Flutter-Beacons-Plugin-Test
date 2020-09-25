@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:beacons_plugin/beacons_plugin.dart';
 import 'package:get_mac/get_mac.dart';
+import 'package:imei_plugin/imei_plugin.dart';
 import 'package:beacons_plugin_test/helpers/references.dart';
 import 'package:beacons_plugin_test/helpers/colorMsg.dart';
 import 'package:beacons_plugin_test/helpers/beaconList.dart';
@@ -46,6 +47,12 @@ class _MainPageState extends State<MainPage>
     /// 手機的 MAC address
     String deviceMacAddr = 'Unknown';
 
+    /// 手機 IMEI
+    String platformImei;
+
+    /// 手機 UUID
+    String uniqueId;
+
     /// Platform 訊息皆為非同步，故以非同步方法初始化
     Future<void> initPlatformState() async
     {
@@ -58,7 +65,25 @@ class _MainPageState extends State<MainPage>
         }
         setState(() {
             deviceMacAddr = _deviceMacAddre;
-            print(colorMsg(deviceMacAddr, r: 140, g: 200, b: 50));
+            print(colorMsg('MAC Address: $deviceMacAddr', r: 140, g: 200, b: 50));
+        });
+
+        /* 獲取手機 IMEI */
+        String _platformImei;
+        String _uniqueId;
+        try {
+            _platformImei = await ImeiPlugin.getImei(shouldShowRequestPermissionRationale: false);
+            List<String> multiImei = await ImeiPlugin.getImeiMulti();
+            print(colorMsg('$multiImei', r: 111, g: 159, b: 40));
+            _uniqueId = await ImeiPlugin.getId();
+        } on PlatformException {
+            print(colorMsg(platformImei, r: 240, g: 208, b: 201));
+        }
+        setState(() {
+            platformImei = _platformImei;
+            uniqueId = _uniqueId;
+            print(colorMsg('Platform IMEI: $platformImei', r: 140, g: 200, b: 50));
+            print(colorMsg('Unique Id: $uniqueId', r: 140, g: 200, b: 50));
         });
 
         /* 設定 dubug 訊息等級 */
