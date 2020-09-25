@@ -8,9 +8,8 @@ Flutter `beacons_plugin` 套件測試。
 ## 參考資料
 
 * **`beacons_plugin` 的 pub.dev 主頁**<br>
-  [beacons_plugin | Flutter Package](https://pub.dev/packages/beacons_plugin)
-
-* **`beacons_plugin` 的 GitHub 主頁**<br>
+  [beacons_plugin | Flutter Package](https://pub.dev/packages/beacons_plugin)<br>
+  **`beacons_plugin` 的 GitHub 主頁**<br>
   [umair13adil/simple_beacons_flutter: A flutter plugin project to range & monitor iBeacons.](https://github.com/umair13adil/simple_beacons_flutter)
 
 * **如何改寫別人的 library**（簡單結論：自己 fork 一個）<br>
@@ -34,4 +33,8 @@ Flutter `beacons_plugin` 套件測試。
 
 * **ANSI 256 色**<br>
   [ANSI跳脫序列 - 維基百科，自由的百科全書](https://zh.wikipedia.org/wiki/ANSI转义序列#8位)
-  
+
+* **`get_mac` 的 pub.dev 主頁**<br>
+  [get_mac | Flutter Package](https://pub.dev/packages/get_mac)<br>
+  **`get_mac` 的 GitLab 主頁**<br>
+  [Vinod Dirishala / Get MAC Plugin · GitLab](https://gitlab.com/vinod_dirishala/get-mac-plugin)
