@@ -83,20 +83,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  get_mac:
-    dependency: "direct main"
-    description:
-      name: get_mac
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.0.1"
-  imei_plugin:
-    dependency: "direct main"
-    description:
-      name: imei_plugin
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.2.0"
   matcher:
     dependency: transitive
     description:

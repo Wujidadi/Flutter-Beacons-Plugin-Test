@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:beacons_plugin/beacons_plugin.dart';
-import 'package:get_mac/get_mac.dart';
-import 'package:imei_plugin/imei_plugin.dart';
+// import 'package:get_mac/get_mac.dart';
+// import 'package:imei_plugin/imei_plugin.dart';
 import 'package:beacons_plugin_test/helpers/references.dart';
 import 'package:beacons_plugin_test/helpers/colorMsg.dart';
 import 'package:beacons_plugin_test/helpers/beaconList.dart';
@@ -57,40 +57,76 @@ class _MainPageState extends State<MainPage>
     Future<void> initPlatformState() async
     {
         /* 獲取手機 MAC address */
-        String _deviceMacAddre;
-        try {
-            _deviceMacAddre = await GetMac.macAddress;
-        } on PlatformException {
-            print(colorMsg(deviceMacAddr, r: 240, g: 208, b: 201));
-        }
-        setState(() {
-            deviceMacAddr = _deviceMacAddre;
-            print(colorMsg('MAC Address: $deviceMacAddr', r: 140, g: 200, b: 50));
-        });
+        // String _deviceMacAddre;
+        // try {
+        //     _deviceMacAddre = await GetMac.macAddress;
+        // } on PlatformException {
+        //     print(colorMsg(deviceMacAddr, r: 240, g: 208, b: 201));
+        // }
+        // setState(() {
+        //     deviceMacAddr = _deviceMacAddre;
+        //     print(colorMsg('MAC Address: $deviceMacAddr', r: 140, g: 200, b: 50));
+        // });
 
         /* 獲取手機 IMEI */
-        String _platformImei;
-        String _uniqueId;
-        try {
-            _platformImei = await ImeiPlugin.getImei(shouldShowRequestPermissionRationale: false);
-            List<String> multiImei = await ImeiPlugin.getImeiMulti();
-            print(colorMsg('$multiImei', r: 111, g: 159, b: 40));
-            _uniqueId = await ImeiPlugin.getId();
-        } on PlatformException {
-            print(colorMsg(platformImei, r: 240, g: 208, b: 201));
-        }
-        setState(() {
-            platformImei = _platformImei;
-            uniqueId = _uniqueId;
-            print(colorMsg('Platform IMEI: $platformImei', r: 140, g: 200, b: 50));
-            print(colorMsg('Unique Id: $uniqueId', r: 140, g: 200, b: 50));
-        });
+        // if (Platform.isAndroid)
+        // {
+        //     String _platformImei;
+        //     String _uniqueId;
+        //     try {
+        //         _platformImei = await ImeiPlugin.getImei(shouldShowRequestPermissionRationale: false);
+        //         List<String> multiImei = await ImeiPlugin.getImeiMulti();
+        //         print(colorMsg('$multiImei', r: 111, g: 159, b: 40));
+        //         _uniqueId = await ImeiPlugin.getId();
+        //     } on PlatformException {
+        //         print(colorMsg(platformImei, r: 240, g: 208, b: 201));
+        //     }
+        //     setState(() {
+        //         platformImei = _platformImei;
+        //         uniqueId = _uniqueId;
+        //         print(colorMsg('Platform IMEI: $platformImei', r: 140, g: 200, b: 50));
+        //         print(colorMsg('Unique Id: $uniqueId', r: 140, g: 200, b: 50));
+        //     });
+        // }
+        // else
+        // {
+        //     String _platformImei;
+        //     try {
+        //         _platformImei = await ImeiPlugin.getImei();
+        //     } on PlatformException {
+        //         print(colorMsg(platformImei, r: 240, g: 208, b: 201));
+        //     }
+        //     setState(() {
+        //         platformImei = _platformImei;
+        //         print(colorMsg('Platform IMEI: $platformImei', r: 140, g: 200, b: 50));
+        //     });
+        // }
 
         /* 設定 dubug 訊息等級 */
-        BeaconsPlugin.setDebugLevel(1);
+        await BeaconsPlugin.setDebugLevel(1);
 
         /* 開啟 App 時便開始掃描 */
-        await BeaconsPlugin.startMonitoring;
+        // await BeaconsPlugin.startMonitoring;
+        // if (Platform.isAndroid)
+        // {
+        //     BeaconsPlugin.channel.setMethodCallHandler((call) async
+        //     {
+        //         if (call.method == 'scannerReady')
+        //         {
+        //             await BeaconsPlugin.startMonitoring;
+        //             setState(() {
+        //                 isRunning = true;
+        //             });
+        //         }
+        //     });
+        // }
+        // else if (Platform.isIOS)
+        // {
+        //     await BeaconsPlugin.startMonitoring;
+        //     setState(() {
+        //         isRunning = true;
+        //     });
+        // }
 
         /* 添加 beacon 區域 */
         for (int i = 0; i < myUuid.length; i++)
@@ -99,6 +135,7 @@ class _MainPageState extends State<MainPage>
             /* .then((result) {
                 print(colorMsg(result, r: 255, g: 171, b: 122));
             }) */;
+            print(myUuid[i]);
         }
 
         /* 掃描 beacon */
@@ -211,27 +248,6 @@ class _MainPageState extends State<MainPage>
                 }
             });
         });
-
-        // if (Platform.isAndroid)
-        // {
-        //     BeaconsPlugin.channel.setMethodCallHandler((call) async
-        //     {
-        //         if (call.method == 'scannerReady')
-        //         {
-        //             await BeaconsPlugin.startMonitoring;
-        //             setState(() {
-        //                 isRunning = true;
-        //             });
-        //         }
-        //     });
-        // }
-        // else if (Platform.isIOS)
-        // {
-        //     await BeaconsPlugin.startMonitoring;
-        //     setState(() {
-        //         isRunning = true;
-        //     });
-        // }
 
         if (!mounted) return;
     }

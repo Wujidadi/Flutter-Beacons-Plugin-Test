@@ -29,15 +29,16 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.3
 
+  # beacons_plugin: ^1.0.16
   beacons_plugin:
     git:
       url: https://github.com/Wujidadi/Flutter-Beacons-Plugin.git
 
   ansicolor: ^1.0.5
 
-  get_mac: ^0.0.1
+  # get_mac: ^0.0.1
 
-  imei_plugin: ^1.2.0
+  # imei_plugin: ^1.2.0
 
 dev_dependencies:
   flutter_test:
