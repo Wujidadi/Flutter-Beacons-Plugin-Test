@@ -1,4 +1,4 @@
-package com.example.beacons_plugin_test
+package com.taras.tBeaconsPlugin
 
 import io.flutter.embedding.android.FlutterActivity
 import com.umair.beacons_plugin.BeaconsPlugin

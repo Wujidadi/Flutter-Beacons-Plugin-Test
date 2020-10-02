@@ -4,6 +4,8 @@ import 'package:beacons_plugin_test/pages/mainPage.dart';
 
 void main()
 {
+    WidgetsFlutterBinding.ensureInitialized();
+
     /* 視覺輔助排版工具 */
     debugPaintSizeEnabled = false;
 

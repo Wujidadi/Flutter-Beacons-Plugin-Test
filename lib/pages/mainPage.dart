@@ -36,7 +36,7 @@ class _MainPageState extends State<MainPage>
     }
 
     /// 藍牙掃描旗標
-    bool isRunning = true;
+    bool isRunning = false;
 
     /// Beacon 監聽器
     final StreamController<String> beaconEventsController = StreamController<String>.broadcast();
@@ -105,8 +105,134 @@ class _MainPageState extends State<MainPage>
         /* 設定 dubug 訊息等級 */
         await BeaconsPlugin.setDebugLevel(1);
 
-        /* 開啟 App 時便開始掃描 */
-        // await BeaconsPlugin.startMonitoring;
+        /* 監聽 beacon */
+        BeaconsPlugin.listenToBeacons(beaconEventsController);
+
+        /* 添加 beacon 區域 */
+        if (Platform.isAndroid)
+        {
+            myUuid.forEach((key, value) async
+            {
+                await BeaconsPlugin.addRegion(key, value)
+                /* .then((result) {
+                    print(colorMsg(result, r: 255, g: 171, b: 122));
+                }) */;
+                print('$key: $value');
+            });
+        }
+        else if (Platform.isIOS)
+        {
+            myUuid.forEach((key, value) async
+            {
+                await BeaconsPlugin.addRegionForIOS(value, 0, 0, key)
+                /* .then((result) {
+                    print(colorMsg(result, r: 255, g: 171, b: 122));
+                }) */;
+                print('$key: $value');
+            });
+        }
+
+        /* 掃描 beacon */
+        beaconEventsController.stream.listen((data)
+        {
+            /* 監聽到的 beacon 資訊非空，亦即確實掃描到了藍牙 beacon */
+            if (data.isNotEmpty)
+            {
+                /* 將字串型態的 device data 轉為物件 */
+                Map<String, dynamic> map = jsonDecode(data);
+
+                setState(()
+                {
+                    // if (Platform.isAndroid)
+                    // {
+                        /* 只抓取 UUID 合乎限定的 beacon */
+                        if (myUuid.containsValue(map['uuid'].toLowerCase()))
+                        {
+                            /* 新增 */
+                            if (!beacons.containsKey(map['macAddress']))
+                            {
+                                Beacon beaconData = Beacon(
+                                    name: map['name'],
+                                    uuid: map['uuid'],
+                                    mac: map['macAddress'],
+                                    major: map['major'],
+                                    minor: map['minor'],
+                                    distance: map['distance'],
+                                    rssi: map['rssi'],
+                                    txPower: map['txPower'],
+                                    time: map['scanTime']
+                                );
+                                beacons.putIfAbsent(map['macAddress'], () => beaconData);
+                            }
+                            /* 更新 */
+                            else
+                            {
+                                Beacon beaconData = Beacon(
+                                    name: map['name'],
+                                    uuid: map['uuid'],
+                                    mac: map['macAddress'],
+                                    major: map['major'],
+                                    minor: map['minor'],
+                                    distance: map['distance'],
+                                    rssi: map['rssi'],
+                                    txPower: map['txPower'],
+                                    time: map['scanTime']
+                                );
+                                beacons.update(map['macAddress'], (v) => beaconData);
+                            }
+                        }
+                    // }
+                    // else if (Platform.isIOS)
+                    // {
+                    //     /* 只抓取 UUID 合乎限定的 beacon */
+                    //     if (myUuid.contains(map['uuid'].toLowerCase()))
+                    //     {
+                    //         /* 新增：beacons_plugin 在 iOS 下抓不到 beacon 的 MAC 位址，故改採 UUID + Majou + Minor 作為唯一 ID */
+                    //         if (!beacons.containsKey('${map['uuid']}-${map['major']}-${map['minor']}'))
+                    //         {
+                    //             Beacon beaconData = Beacon(
+                    //                 name: map['name'],
+                    //                 uuid: map['uuid'],
+                    //                 mac: map['macAddress'],
+                    //                 major: map['major'],
+                    //                 minor: map['minor'],
+                    //                 distance: map['distance'],
+                    //                 rssi: map['rssi'],
+                    //                 txPower: map['txPower'],
+                    //                 time: map['scanTime']
+                    //             );
+                    //             beacons.putIfAbsent('${map['uuid']}-${map['major']}-${map['minor']}', () => beaconData);
+                    //         }
+                    //         /* 更新 */
+                    //         else
+                    //         {
+                    //             Beacon beaconData = Beacon(
+                    //                 name: map['name'],
+                    //                 uuid: map['uuid'],
+                    //                 mac: map['macAddress'],
+                    //                 major: map['major'],
+                    //                 minor: map['minor'],
+                    //                 distance: map['distance'],
+                    //                 rssi: map['rssi'],
+                    //                 txPower: map['txPower'],
+                    //                 time: map['scanTime']
+                    //             );
+                    //             beacons.update('${map['uuid']}-${map['major']}-${map['minor']}', (v) => beaconData);
+                    //         }
+                    //     }
+                    // }
+                });
+            }
+        },
+        onDone: () {},
+        onError: (error) {
+            print("Error: $error");
+        });
+
+        /* 設為 true 以背景執行 */
+        await BeaconsPlugin.runInBackground(true);
+
+        /* 開始掃描 */
         // if (Platform.isAndroid)
         // {
         //     BeaconsPlugin.channel.setMethodCallHandler((call) async
@@ -122,82 +248,11 @@ class _MainPageState extends State<MainPage>
         // }
         // else if (Platform.isIOS)
         // {
-        //     await BeaconsPlugin.startMonitoring;
-        //     setState(() {
-        //         isRunning = true;
-        //     });
+            await BeaconsPlugin.startMonitoring;
+            setState(() {
+                isRunning = true;
+            });
         // }
-
-        /* 添加 beacon 區域 */
-        for (int i = 0; i < myUuid.length; i++)
-        {
-            await BeaconsPlugin.addRegion("BeaconType${i + 1}", myUuid[i])
-            /* .then((result) {
-                print(colorMsg(result, r: 255, g: 171, b: 122));
-            }) */;
-            print(myUuid[i]);
-        }
-
-        /* 掃描 beacon */
-        BeaconsPlugin.listenToBeacons(beaconEventsController);
-
-        /* 掃描 beacon */
-        beaconEventsController.stream.listen((data)
-        {
-            /* 監聽到的 beacon 資訊非空，亦即確實掃描到了藍牙 beacon */
-            if (data.isNotEmpty)
-            {
-                /* 將字串型態的 device data 轉為物件 */
-                Map<String, dynamic> map = jsonDecode(data);
-
-                setState(()
-                {
-                    /* 只抓取 UUID 合乎限定的 beacon */
-                    if (myUuid.contains(map['uuid'].toLowerCase()))
-                    {
-                        /* 新增 */
-                        if (!beacons.containsKey(map['macAddress']))
-                        {
-                            Beacon beaconData = Beacon(
-                                name: map['name'],
-                                uuid: map['uuid'],
-                                mac: map['macAddress'],
-                                major: map['major'],
-                                minor: map['minor'],
-                                distance: map['distance'],
-                                rssi: map['rssi'],
-                                txPower: map['txPower'],
-                                time: map['scanTime']
-                            );
-                            beacons.putIfAbsent(map['macAddress'], () => beaconData);
-                        }
-                        /* 更新 */
-                        else
-                        {
-                            Beacon beaconData = Beacon(
-                                name: map['name'],
-                                uuid: map['uuid'],
-                                mac: map['macAddress'],
-                                major: map['major'],
-                                minor: map['minor'],
-                                distance: map['distance'],
-                                rssi: map['rssi'],
-                                txPower: map['txPower'],
-                                time: map['scanTime']
-                            );
-                            beacons.update(map['macAddress'], (v) => beaconData);
-                        }
-                    }
-                });
-            }
-        },
-        onDone: () {},
-        onError: (error) {
-            print("Error: $error");
-        });
-
-        /* 設為 true 以背景執行 */
-        await BeaconsPlugin.runInBackground(true);
 
         /* 定時印出 Beacons 訊息 */
         // Timer.periodic(period, (timer)
@@ -278,6 +333,7 @@ class _MainPageState extends State<MainPage>
                                 await BeaconsPlugin.stopMonitoring;
                                 setState(()
                                 {
+                                    print('BeaconsPlugin.stopMonitoring');
                                     isRunning = false;
                                 });
                             // }
@@ -295,6 +351,7 @@ class _MainPageState extends State<MainPage>
                             await BeaconsPlugin.startMonitoring;
                             setState(()
                             {
+                                print('BeaconsPlugin.startMonitoring');
                                 isRunning = true;
                             });
                         }
