@@ -40,6 +40,8 @@ dependencies:
 
   # imei_plugin: ^1.2.0
 
+  flutter_launcher_icons: ^0.8.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
