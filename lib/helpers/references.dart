@@ -1,7 +1,7 @@
 /// 限定目標基站或 beacon 的名稱及 UUID
 final Map<String, String> myUuid = {
-    'STU':     '0a4d8b73-7f74-4a83-b2ca-4fe84e870427',
-    'TUT':     '0a4d8b73-7f74-4a83-b2ca-4fe84e870437',
+    'Region1': '0a4d8b73-7f74-4a83-b2ca-4fe84e870427',
+    'Region2': '0a4d8b73-7f74-4a83-b2ca-4fe84e870437',
     'Region3': 'b5b182c7-eab1-4988-aa99-b5c1517008d9'
 };
 
