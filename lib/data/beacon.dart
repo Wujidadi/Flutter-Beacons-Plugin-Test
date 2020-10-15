@@ -6,7 +6,7 @@ class Beacon
     final String major;
     final String minor;
     final String distance;
-    final String rssi;
+    final int rssi;
     final String txPower;
     final String time;
 

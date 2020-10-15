@@ -141,12 +141,15 @@ class _MainPageState extends State<MainPage>
                 /* 將字串型態的 device data 轉為物件 */
                 Map<String, dynamic> map = jsonDecode(data);
 
+                /// 基站 RSSI
+                int rssi = int.parse(map['rssi']);
+
                 setState(()
                 {
                     // if (Platform.isAndroid)
                     // {
                         /* 只抓取 UUID 合乎限定的 beacon */
-                        if (myUuid.containsValue(map['uuid'].toLowerCase()))
+                        if (myUuid.containsValue(map['uuid'].toLowerCase()) && rssi < 0)
                         {
                             /* 新增 */
                             if (!beacons.containsKey(map['macAddress']))
@@ -158,7 +161,7 @@ class _MainPageState extends State<MainPage>
                                     major: map['major'],
                                     minor: map['minor'],
                                     distance: map['distance'],
-                                    rssi: map['rssi'],
+                                    rssi: rssi,
                                     txPower: map['txPower'],
                                     time: map['scanTime']
                                 );
@@ -174,7 +177,7 @@ class _MainPageState extends State<MainPage>
                                     major: map['major'],
                                     minor: map['minor'],
                                     distance: map['distance'],
-                                    rssi: map['rssi'],
+                                    rssi: rssi,
                                     txPower: map['txPower'],
                                     time: map['scanTime']
                                 );
@@ -185,7 +188,7 @@ class _MainPageState extends State<MainPage>
                     // else if (Platform.isIOS)
                     // {
                     //     /* 只抓取 UUID 合乎限定的 beacon */
-                    //     if (myUuid.contains(map['uuid'].toLowerCase()))
+                    //     if (myUuid.contains(map['uuid'].toLowerCase()) && rssi < 0)
                     //     {
                     //         /* 新增：beacons_plugin 在 iOS 下抓不到 beacon 的 MAC 位址，故改採 UUID + Majou + Minor 作為唯一 ID */
                     //         if (!beacons.containsKey('${map['uuid']}-${map['major']}-${map['minor']}'))
@@ -197,7 +200,7 @@ class _MainPageState extends State<MainPage>
                     //                 major: map['major'],
                     //                 minor: map['minor'],
                     //                 distance: map['distance'],
-                    //                 rssi: map['rssi'],
+                    //                 rssi: rssi,
                     //                 txPower: map['txPower'],
                     //                 time: map['scanTime']
                     //             );
@@ -213,7 +216,7 @@ class _MainPageState extends State<MainPage>
                     //                 major: map['major'],
                     //                 minor: map['minor'],
                     //                 distance: map['distance'],
-                    //                 rssi: map['rssi'],
+                    //                 rssi: rssi,
                     //                 txPower: map['txPower'],
                     //                 time: map['scanTime']
                     //             );
